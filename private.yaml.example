@@ -1,0 +1,18 @@
+# Fill this in and rename to private.yaml
+# Note - there are environment settings for both deploy and the lambda
+deploy_parameters.template.yaml:
+  MY_LAMBDA_BUCKET: bucket_where_I_store_lambdas
+  MY_STACKNAME: CertbotLambdaStack
+  MY_REGION: us-east-1
+  MY_ENV: prod
+certbot_cf.template.yaml:
+  # Prefix should end in slash, if env is 'dev', it will have dev- prepended
+  MYENV: prod
+  MYDOMAINLIST: 'xxx.coolsite.com/secondsite.com,www.secondsite.com'
+  MYEMAIL: me@here.com
+  MYCERTBUCKET: bucket_where_I_store_certs
+  MYPREFIX: letsencrypt/
+  MYFORCERENEW: 'false'
+  MYSENTRYDSN: 'put_your_dsn_here'
+  MYZONE1: Route53_Zone_stuff_here
+  MYZONE2: Route53_Zone_stuff_here

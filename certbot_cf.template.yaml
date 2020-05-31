@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: |
+  Cloudformaiton to:
+  1) Create IAM Role for the Lambda to be able to read
+     and write to the s3 buckets and access the R53 domains
+     to be able to respond to the letsencrypt challenge
+  2) The lambda
+  3) The Cloudwatch timer to run the lambda
+
+Resources:
+
+  #1 IAM Role and Policy for the Lambda
+  CertbotLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      # The following gives rights to create cloudwatch logs
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      # Permissions for lambda to be able to create ec2 instances
+      Policies:
+      - PolicyName: certbot_lambda_s3_policy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - s3:ListBucket
+            - s3:GetBucketLocation
+            Resource:
+            - arn:aws:s3:::MYCERTBUCKET
+          - Effect: Allow
+            Action:
+            - s3:PutObject
+            - s3:GetObject
+            - s3:GetObjectVersion
+            - s3:DeleteObject
+            - s3:DeleteObjectVersion
+            Resource:
+            - arn:aws:s3:::MYCERTBUCKET
+            - arn:aws:s3:::MYCERTBUCKET/*
+      # Allow lambda access to s3
+      - PolicyName: certbot_lambda_r53_policy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - route53:ChangeResourceRecordSets
+            Resource:
+            - arn:aws:route53:::hostedzone/MYZONE1
+            - arn:aws:route53:::hostedzone/MYZONE2
+            - arn:aws:route53:::hostedzone/MYZONE3
+            - arn:aws:route53:::hostedzone/MYZONE4
+          - Effect: Allow
+            Action:
+            - route53:ListHostedZones
+            - route53:GetChange
+            Resource: '*'
+  #2 Create the lambda with its assoicated role
+  # Timeout is set for 15m (900s)
+  CertbotLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: mylambda
+      Handler: main.handler
+      Runtime: python3.8
+      MemorySize: 192
+      Timeout: 900
+      Role: !GetAtt CertbotLambdaRole.Arn
+      # Code: deploy/
+      ## CUSTOM Environment
+      Environment:
+        Variables:
+          LETSENCRYPT_DOMAINS:  MYDOMAINLIST
+          LETSENCRYPT_CERTBUCKET: MYCERTBUCKET
+          LETSENCRYPT_EMAIL: MYEMAIL
+          LETSENCRYPT_CERTBUCKET_PREFIX: MYPREFIX
+          LETSENCRYPT_FORCE_RENEW: MYFORCERENEW
+          # dev or prod
+          CERTBOT_ENV: MYENV
+          SENTRY_DSN: MYSENTRYDSN
+      Events:
+        CheckCertificatesScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(10 1 * * ? *)

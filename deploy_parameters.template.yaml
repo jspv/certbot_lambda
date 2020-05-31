@@ -1,0 +1,18 @@
+stackname: MY_STACKNAME
+region: MY_REGION
+
+# If this is set to anything but 'prod', a dev- prefix will be used.
+environment: MY_ENV
+
+# Cloudformation template and the output from the cloudformation deploy
+cloudformation_template: certbot_cf.yaml
+
+# Where should the lambda be stored
+lambda_bucket: MY_LAMBDA_BUCKET
+lambda_prefix: certbot_lambda
+
+# The lambda code and where to b
+code_dir: ./mylambda
+
+# Where to build the Lamba package before upload
+deploy_dir: ./deploy
