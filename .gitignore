@@ -1,4 +1,5 @@
-private*
+private.yaml.dev
+private.yaml
 deploy_parameters.yaml
 certbot_cf.yaml
 deploy/
