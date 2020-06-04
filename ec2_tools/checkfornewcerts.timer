@@ -1,0 +1,8 @@
+[Unit]
+Description=Check to see if we need to refresh certs
+
+[Timer]
+OnCalendar=*:15
+OnBootSec=60s
+Persistent=true
+Unit=checkfornewcerts.service

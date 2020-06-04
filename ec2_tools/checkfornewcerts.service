@@ -1,0 +1,11 @@
+[Unit]
+Description=Check s3 bucket for new certs
+After=network.target sync2s3.service
+
+[Service]
+Type=oneshot
+# replace the XX token below with the path where checkfornewcerts will be installed
+ExecStart=XXBINDIRXX/checkfornewcerts.sh 2>&1 >> /var/log/checkfornewcerts.log
+
+[Install]
+WantedBy=multi-user.target
